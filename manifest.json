@@ -2,7 +2,7 @@
 	"id": "og-task",
 	"name": "og task plugin",
 	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
+	"minAppVersion": "1.14.4",
 	"description": "clean google task plugin for connecting to the google task api.",
 	"author": "VN-78",
 	"authorUrl": "https://obsidian.md",
