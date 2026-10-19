@@ -5,6 +5,7 @@
     --color-blue-600: oklch(54.6% 0.245 262.881);
     --color-white: #fff;
     --spacing: 0.25rem;
+    --color-obs-accent: var(--interactive-accent);
   }
 }
 @layer utilities {
@@ -23,8 +24,8 @@
   .rounded {
     border-radius: 0.25rem;
   }
-  .bg-blue-600 {
-    background-color: var(--color-blue-600);
+  .bg-obs-accent {
+    background-color: var(--color-obs-accent);
   }
   .px-3 {
     padding-inline: calc(var(--spacing) * 3);
