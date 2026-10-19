@@ -3,9 +3,9 @@ import { mount, unmount } from "svelte";
 
 import Counter from "./components/Counter.svelte";
 
-export const VIEW_TYPE_TASK = 'og-task-view';
+export const VIEW_TYPE_TASKS = 'og-task-view';
 
-export class CounterView extends ItemView {
+export class TaskView extends ItemView {
 	component: Record<string, any> | null = null;
 
 	constructor(leaf: WorkspaceLeaf) {
@@ -13,7 +13,7 @@ export class CounterView extends ItemView {
 	}
 
 	getViewType(): string {
-		return VIEW_TYPE_TASK;
+		return VIEW_TYPE_TASKS;
 	}
 
 	getDisplayText(): string {
