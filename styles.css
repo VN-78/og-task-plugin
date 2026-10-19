@@ -1,8 +1,38 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
+@layer theme, components, utilities;
+@layer theme {
+  :root, :host {
+    --color-blue-600: oklch(54.6% 0.245 262.881);
+    --color-white: #fff;
+    --spacing: 0.25rem;
+  }
+}
+@layer utilities {
+  .contents {
+    display: contents;
+  }
+  .hidden {
+    display: none;
+  }
+  .inline {
+    display: inline;
+  }
+  .resize {
+    resize: both;
+  }
+  .rounded {
+    border-radius: 0.25rem;
+  }
+  .bg-blue-600 {
+    background-color: var(--color-blue-600);
+  }
+  .px-3 {
+    padding-inline: calc(var(--spacing) * 3);
+  }
+  .py-1 {
+    padding-block: var(--spacing);
+  }
+  .text-white {
+    color: var(--color-white);
+  }
+}
