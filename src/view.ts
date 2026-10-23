@@ -5,6 +5,8 @@ import Counter from "./components/Counter.svelte";
 
 export const VIEW_TYPE_TASKS = 'og-task-view';
 
+
+
 export class TaskView extends ItemView {
 	component: Record<string, any> | null = null;
 
