@@ -1,6 +1,7 @@
 import OgTaskPlugin from '../main';
 import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
-import { listenForAuthCode, fetchToken } from '../googleAPI/auth';
+import { listenForAuthCode, fetchToken } from '../api/auth';
+import { taskStore } from '../store/tasks.svelte';
 
 export class SettingTab extends PluginSettingTab {
 	plugin: OgTaskPlugin;
@@ -34,6 +35,7 @@ export class SettingTab extends PluginSettingTab {
 							this.plugin.settings.refreshToken = '';
 							this.plugin.settings.tokenExpiry = 0;
 							await this.plugin.saveSettings();
+							void taskStore.loadTaskLists();
 							new Notice('Disconnected from Google Tasks.');
 							this.display();
 						})
@@ -126,6 +128,7 @@ export class SettingTab extends PluginSettingTab {
 							}
 							this.plugin.settings.tokenExpiry = Date.now() + (tokenData.expires_in - 60) * 1000;
 							await this.plugin.saveSettings();
+							void taskStore.loadTaskLists();
 
 							new Notice('Connected to Google Tasks successfully!');
 							this.display();
