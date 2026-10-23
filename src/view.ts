@@ -1,14 +1,12 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
-import { mount, unmount } from "svelte";
-
-import Counter from "./components/Counter.svelte";
+import { ItemView, WorkspaceLeaf } from 'obsidian';
+import { mount, unmount } from 'svelte';
+import TaskWidget from './ui/TaskWidget.svelte';
+import { taskStore } from './store/tasks.svelte';
 
 export const VIEW_TYPE_TASKS = 'og-task-view';
 
-
-
 export class TaskView extends ItemView {
-	component: Record<string, any> | null = null;
+	private component: ReturnType<typeof mount> | null = null;
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
@@ -19,17 +17,26 @@ export class TaskView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return 'Og-task-view';
+		return 'Google tasks';
+	}
+
+	getIcon(): string {
+		return 'check-square';
 	}
 
 	protected async onOpen(): Promise<void> {
-		this.component = mount(Counter, {
+		this.component = mount(TaskWidget, {
 			target: this.contentEl,
-			props: { start: 10},
-		})
+			props: { app: this.app },
+		});
+
+		void taskStore.loadTaskLists();
 	}
 
 	protected async onClose(): Promise<void> {
-		if (this.component) await unmount(this.component);
+		if (this.component) {
+			await unmount(this.component);
+			this.component = null;
+		}
 	}
 }
