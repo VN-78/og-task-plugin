@@ -7,3 +7,56 @@
   --color-obs-text: var(--text-normal);
   --color-obs-accent: var(--interactive-accent);
 }
+
+/* Neutralize Obsidian's code block wrappers for Google Tasks embeds */
+.block-language-google-tasks,
+.block-language-og-task,
+.og-task-embed-host {
+	padding: 0 !important;
+	margin: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+/* Neutralize Live Preview CodeMirror embed container */
+.cm-embed-block:has(.block-language-google-tasks),
+.cm-embed-block:has(.block-language-og-task),
+.cm-embed-block:has(.og-task-embed-host),
+.cm-embed-block.og-task-parent-clean {
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	outline: none !important;
+}
+
+/* Live Preview edit button styling */
+.cm-embed-block:has(.og-task-embed-host) .edit-block-button,
+.cm-embed-block.og-task-parent-clean .edit-block-button {
+	top: 8px;
+	right: 8px;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+.cm-embed-block:has(.og-task-embed-host):hover .edit-block-button,
+.cm-embed-block.og-task-parent-clean:hover .edit-block-button {
+	opacity: 0.6;
+}
+
+.cm-embed-block:has(.og-task-embed-host):hover .edit-block-button:hover,
+.cm-embed-block.og-task-parent-clean:hover .edit-block-button:hover {
+	opacity: 1;
+}
+
+/* Reading View pre block */
+.markdown-rendered pre:has(code.language-google-tasks),
+.markdown-rendered pre:has(code.language-og-task),
+.markdown-rendered pre:has(.og-task-embed-host) {
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+	background: transparent !important;
+}
