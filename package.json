@@ -28,5 +28,8 @@
 		"tailwindcss": "^4.3.3",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.59.1"
+	},
+	"dependencies": {
+		"bits-ui": "^2.20.2"
 	}
 }
