@@ -1,71 +1,144 @@
 <script lang="ts">
-	import { App } from 'obsidian';
+	import { DropdownMenu } from 'bits-ui';
 	import { taskStore } from '../store/tasks.svelte';
-	import { CreateTaskModal } from './CreateTaskModal';
+	import { getDueInfo } from '../utils/date';
+	import { ICONS } from '../utils/icons';
 
-	let { app }: { app: App } = $props();
+	let { app = undefined }: { app?: unknown } = $props();
 
-	function openCreateModal() {
-		new CreateTaskModal(app).open();
-	}
-
-	function handleListChange(event: Event) {
-		const target = event.target as HTMLSelectElement;
-		void taskStore.switchList(target.value);
-	}
-
-	function formatDate(dueStr?: string): string {
-		if (!dueStr) return '';
-		try {
-			const d = new Date(dueStr);
-			if (isNaN(d.getTime())) return '';
-			return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-		} catch {
-			return '';
-		}
-	}
+	let activeListTitle = $derived(taskStore.activeListTitle);
 </script>
 
 <div class="og-task-container">
 	{#if !taskStore.isConnected}
 		<div class="og-task-disconnected">
-			<div class="og-task-disconnected-icon">📋</div>
+			<div class="og-task-disconnected-icon">{@html ICONS.clipboardList}</div>
 			<h3>Connect Google Tasks</h3>
 			<p>Link your Google account in Settings to view and sync your tasks here.</p>
 		</div>
 	{:else}
-		<!-- Header (Google Tasks Mobile Widget Style) -->
+		<!-- Header with Bits UI DropdownMenu for Lists & More Options -->
 		<div class="og-task-header">
 			<div class="og-task-header-left">
-				{#if taskStore.taskLists.length > 1}
-					<select
-						class="dropdown og-task-select"
-						value={taskStore.activeListId}
-						onchange={handleListChange}
-					>
-						{#each taskStore.taskLists as list (list.id)}
-							<option value={list.id}>{list.title}</option>
-						{/each}
-					</select>
-				{:else if taskStore.taskLists.length === 1}
-					<span class="og-task-title">{taskStore.taskLists[0]?.title ?? 'My Tasks'}</span>
-				{:else}
-					<span class="og-task-title">Google Tasks</span>
-				{/if}
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger class="og-dropdown-trigger" aria-label="Select task list">
+						<span class="og-dropdown-trigger-text">{activeListTitle}</span>
+						<span class="og-dropdown-trigger-icon">{@html ICONS.chevronDown}</span>
+					</DropdownMenu.Trigger>
+
+					<DropdownMenu.Portal>
+						<DropdownMenu.Content class="og-dropdown-content" sideOffset={5} align="start">
+							<div class="og-dropdown-items-group">
+								{#each taskStore.taskLists as list (list.id)}
+									<DropdownMenu.Item
+										class="og-dropdown-item {list.id === taskStore.activeListId ? 'is-selected' : ''}"
+										onSelect={() => void taskStore.switchList(list.id)}
+									>
+										<span class="og-dropdown-item-check">
+											{#if list.id === taskStore.activeListId}
+												{@html ICONS.check}
+											{/if}
+										</span>
+										<span class="og-dropdown-item-title">{list.title}</span>
+									</DropdownMenu.Item>
+								{/each}
+							</div>
+
+							<DropdownMenu.Separator class="og-dropdown-separator" />
+
+							<DropdownMenu.Item
+								class="og-dropdown-item og-dropdown-item-action"
+								onSelect={() => taskStore.openNewListModal()}
+							>
+								<span class="og-dropdown-action-icon">{@html ICONS.plus}</span>
+								<span>New list</span>
+							</DropdownMenu.Item>
+						</DropdownMenu.Content>
+					</DropdownMenu.Portal>
+				</DropdownMenu.Root>
 			</div>
 
 			<div class="og-task-header-right">
+				<!-- List More Options (⋮) Menu -->
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger class="clickable-icon og-task-icon-btn" aria-label="List options">
+						{@html ICONS.moreVertical}
+					</DropdownMenu.Trigger>
+
+					<DropdownMenu.Portal>
+						<DropdownMenu.Content class="og-dropdown-content" sideOffset={5} align="end">
+							<div class="og-dropdown-section-label">Sort by</div>
+							<DropdownMenu.Item
+								class="og-dropdown-item {taskStore.sortBy === 'myOrder' ? 'is-selected' : ''}"
+								onSelect={() => taskStore.setSortBy('myOrder')}
+							>
+								<span class="og-dropdown-item-check">
+									{#if taskStore.sortBy === 'myOrder'}
+										{@html ICONS.check}
+									{/if}
+								</span>
+								<span>My order</span>
+							</DropdownMenu.Item>
+							<DropdownMenu.Item
+								class="og-dropdown-item {taskStore.sortBy === 'date' ? 'is-selected' : ''}"
+								onSelect={() => taskStore.setSortBy('date')}
+							>
+								<span class="og-dropdown-item-check">
+									{#if taskStore.sortBy === 'date'}
+										{@html ICONS.check}
+									{/if}
+								</span>
+								<span>Date</span>
+							</DropdownMenu.Item>
+							<DropdownMenu.Item
+								class="og-dropdown-item {taskStore.sortBy === 'title' ? 'is-selected' : ''}"
+								onSelect={() => taskStore.setSortBy('title')}
+							>
+								<span class="og-dropdown-item-check">
+									{#if taskStore.sortBy === 'title'}
+										{@html ICONS.check}
+									{/if}
+								</span>
+								<span>Title</span>
+							</DropdownMenu.Item>
+
+							<DropdownMenu.Separator class="og-dropdown-separator" />
+
+							<DropdownMenu.Item
+								class="og-dropdown-item"
+								onSelect={() => taskStore.openRenameModal()}
+							>
+								<span class="og-dropdown-action-icon">{@html ICONS.edit}</span>
+								<span>Rename list</span>
+							</DropdownMenu.Item>
+
+							<DropdownMenu.Item
+								class="og-dropdown-item {taskStore.isDefaultList ? 'is-disabled' : 'is-destructive'}"
+								disabled={taskStore.isDefaultList}
+								onSelect={() => {
+									if (!taskStore.isDefaultList) {
+										void taskStore.deleteActiveList();
+									}
+								}}
+							>
+								<span class="og-dropdown-action-icon">{@html ICONS.trash}</span>
+								<span>Delete list</span>
+							</DropdownMenu.Item>
+						</DropdownMenu.Content>
+					</DropdownMenu.Portal>
+				</DropdownMenu.Root>
+
 				<button
-					class="clickable-icon og-task-refresh-btn"
+					class="clickable-icon og-task-icon-btn"
 					aria-label="Refresh tasks"
 					onclick={() => taskStore.loadActiveTasks()}
 				>
-					↻
+					{@html ICONS.refresh}
 				</button>
 				<button
 					class="mod-cta og-task-add-btn"
 					aria-label="Add task"
-					onclick={openCreateModal}
+					onclick={() => taskStore.openCreateModal()}
 				>
 					+ Add task
 				</button>
@@ -78,44 +151,70 @@
 		{:else if taskStore.error}
 			<div class="og-task-error">
 				<p>{taskStore.error}</p>
-				<button onclick={() => taskStore.loadActiveTasks()}>Retry</button>
+				<button class="og-btn og-btn-secondary" onclick={() => taskStore.loadActiveTasks()}>Retry</button>
 			</div>
 		{:else}
 			<div class="og-task-list">
-				{#if taskStore.activeTasks.length === 0}
+				{#if taskStore.sortedActiveTasks.length === 0}
 					<div class="og-task-empty">
-						<span>🎉</span>
-						<p>All tasks completed!</p>
+						<p>No active tasks in this list</p>
 					</div>
 				{:else}
-					{#each taskStore.activeTasks as task (task.id)}
+					{#each taskStore.sortedActiveTasks as task (task.id)}
+						{@const dueInfo = getDueInfo(task.due)}
 						<div class="og-task-item">
 							<input
 								type="checkbox"
 								class="task-list-item-checkbox og-task-checkbox"
 								checked={false}
 								onchange={() => taskStore.toggleTask(task)}
+								aria-label="Mark task completed"
 							/>
-							<div class="og-task-content">
+
+							<div
+								class="og-task-content"
+								role="button"
+								tabindex="0"
+								onclick={() => taskStore.openEditModal(task)}
+								onkeydown={(e) => {
+									if (e.key === 'Enter') taskStore.openEditModal(task);
+								}}
+							>
 								<span class="og-task-item-title">{task.title}</span>
-								{#if task.notes || task.due}
+								{#if dueInfo || task.notes}
 									<div class="og-task-item-meta">
-										{#if task.due}
-											<span class="og-task-due">📅 {formatDate(task.due)}</span>
+										{#if dueInfo}
+											<span class="og-task-due {dueInfo.isOverdue ? 'is-overdue' : ''}">
+												<span class="og-meta-icon">{@html ICONS.calendar}</span>
+												<span>{dueInfo.text}</span>
+											</span>
 										{/if}
 										{#if task.notes}
-											<span class="og-task-notes-badge" title={task.notes}>📝 Notes</span>
+											<span class="og-task-notes-badge" title={task.notes}>
+												<span class="og-meta-icon">{@html ICONS.notes}</span>
+												<span>Notes</span>
+											</span>
 										{/if}
 									</div>
 								{/if}
 							</div>
-							<button
-								class="clickable-icon og-task-delete-btn"
-								aria-label="Delete task"
-								onclick={() => taskStore.deleteTask(task.id)}
-							>
-								✕
-							</button>
+
+							<div class="og-task-actions">
+								<button
+									class="clickable-icon og-task-action-btn"
+									aria-label="Edit task"
+									onclick={() => taskStore.openEditModal(task)}
+								>
+									{@html ICONS.edit}
+								</button>
+								<button
+									class="clickable-icon og-task-action-btn is-delete"
+									aria-label="Delete task"
+									onclick={() => taskStore.deleteTask(task.id)}
+								>
+									{@html ICONS.trash}
+								</button>
+							</div>
 						</div>
 					{/each}
 				{/if}
@@ -127,7 +226,9 @@
 					class="og-task-completed-toggle"
 					onclick={() => taskStore.toggleShowCompleted()}
 				>
-					<span class="og-task-chevron">{taskStore.showCompleted ? '▼' : '▶'}</span>
+					<span class="og-task-chevron">
+						{@html taskStore.showCompleted ? ICONS.chevronDown : ICONS.chevronUp}
+					</span>
 					<span>Completed</span>
 					{#if taskStore.completedTasks.length > 0}
 						<span class="og-task-completed-count">({taskStore.completedTasks.length})</span>
@@ -142,23 +243,31 @@
 					{:else}
 						<div class="og-task-completed-list">
 							{#each taskStore.completedTasks as completedTask (completedTask.id)}
-								<div class="og-task-item mod-completed">
+								<div class="og-task-item is-completed-row">
 									<input
 										type="checkbox"
 										class="task-list-item-checkbox og-task-checkbox"
 										checked={true}
 										onchange={() => taskStore.toggleTask(completedTask)}
+										aria-label="Mark task incomplete"
 									/>
-									<div class="og-task-content">
-										<span class="og-task-item-title is-completed">{completedTask.title}</span>
+									<span class="og-task-item-title is-completed">{completedTask.title}</span>
+									<div class="og-task-actions">
+										<button
+											class="clickable-icon og-task-action-btn"
+											aria-label="Edit task"
+											onclick={() => taskStore.openEditModal(completedTask)}
+										>
+											{@html ICONS.edit}
+										</button>
+										<button
+											class="clickable-icon og-task-action-btn is-delete"
+											aria-label="Delete task"
+											onclick={() => taskStore.deleteTask(completedTask.id)}
+										>
+											{@html ICONS.trash}
+										</button>
 									</div>
-									<button
-										class="clickable-icon og-task-delete-btn"
-										aria-label="Delete task"
-										onclick={() => taskStore.deleteTask(completedTask.id)}
-									>
-										✕
-									</button>
 								</div>
 							{/each}
 						</div>
@@ -211,42 +320,154 @@
 		min-width: 0;
 	}
 
-	.og-task-select {
-		max-width: 100%;
-		font-weight: 600;
-		font-size: 14px;
+	/* Dropdown Trigger */
+	:global(.og-dropdown-trigger) {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
 		background: transparent;
 		border: 1px solid var(--background-modifier-border);
+		border-radius: 6px;
+		padding: 4px 10px;
+		color: var(--text-normal);
+		cursor: pointer;
+		font-size: 13px;
+		font-weight: 600;
+		max-width: 100%;
+		box-sizing: border-box;
+		transition: background-color 0.15s ease;
+	}
+
+	:global(.og-dropdown-trigger:hover) {
+		background-color: var(--background-modifier-hover);
+	}
+
+	.og-dropdown-trigger-text {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.og-dropdown-trigger-icon {
+		display: flex;
+		align-items: center;
+		opacity: 0.7;
+	}
+
+	/* Dropdown Menu Content */
+	:global(.og-dropdown-content) {
+		z-index: var(--layer-popover, 80);
+		min-width: 190px;
+		background-color: var(--background-secondary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 8px;
+		box-shadow: var(--shadow-s, 0 4px 16px rgba(0, 0, 0, 0.25));
+		padding: 4px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.og-dropdown-section-label {
+		font-size: 11px;
+		font-weight: 600;
+		color: var(--text-muted);
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		padding: 6px 10px 4px 10px;
+	}
+
+	.og-dropdown-items-group {
+		display: flex;
+		flex-direction: column;
+	}
+
+	:global(.og-dropdown-item) {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 7px 10px;
+		font-size: 13px;
 		border-radius: 4px;
 		color: var(--text-normal);
 		cursor: pointer;
-		padding: 4px 8px;
+		outline: none;
+		user-select: none;
+		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
-	.og-task-title {
-		font-size: 15px;
+	.og-dropdown-items-group :global(.og-dropdown-item:last-child) {
+		border-bottom: none;
+	}
+
+	:global(.og-dropdown-item:hover),
+	:global(.og-dropdown-item[data-highlighted]) {
+		background-color: var(--background-modifier-hover);
+	}
+
+	:global(.og-dropdown-item.is-selected) {
 		font-weight: 600;
-		color: var(--text-normal);
-		white-space: nowrap;
+		color: var(--interactive-accent);
+	}
+
+	:global(.og-dropdown-item.is-disabled) {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	:global(.og-dropdown-item.is-destructive:hover) {
+		color: var(--text-error, #f87171);
+	}
+
+	:global(.og-dropdown-separator) {
+		height: 1px;
+		background-color: var(--background-modifier-border);
+		margin: 4px 0;
+	}
+
+	:global(.og-dropdown-item-action) {
+		border-bottom: none !important;
+		color: var(--text-accent);
+		font-weight: 500;
+	}
+
+	.og-dropdown-action-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 14px;
+	}
+
+	.og-dropdown-item-check {
+		width: 14px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.og-dropdown-item-title {
+		flex: 1;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.og-task-header-right {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: 4px;
 	}
 
-	.og-task-refresh-btn {
-		font-size: 16px;
-		padding: 4px 8px;
+	.og-task-icon-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 4px 6px;
 		cursor: pointer;
 		color: var(--text-muted);
 		border-radius: 4px;
 	}
 
-	.og-task-refresh-btn:hover {
+	.og-task-icon-btn:hover {
 		color: var(--text-normal);
 		background-color: var(--background-modifier-hover);
 	}
@@ -260,17 +481,18 @@
 		white-space: nowrap;
 	}
 
+	/* Simple Clean Task Row */
 	.og-task-list {
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
+		gap: 4px;
 	}
 
 	.og-task-item {
 		display: flex;
 		align-items: flex-start;
 		gap: 10px;
-		padding: 6px 8px;
+		padding: 7px 8px;
 		border-radius: 6px;
 		transition: background-color 0.15s ease;
 	}
@@ -290,15 +512,18 @@
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
+		cursor: pointer;
+		outline: none;
 	}
 
 	.og-task-item-title {
 		font-size: 13px;
 		line-height: 1.4;
 		word-break: break-word;
+		color: var(--text-normal);
 	}
 
-	.og-task-item-title.is-completed {
+	.og-task-item.is-completed-row .og-task-item-title {
 		text-decoration: line-through;
 		color: var(--text-muted);
 	}
@@ -312,29 +537,58 @@
 	}
 
 	.og-task-due {
-		color: var(--text-accent);
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		color: var(--text-muted);
+	}
+
+	.og-task-due.is-overdue {
+		color: var(--text-error, #f87171);
+		font-weight: 600;
 	}
 
 	.og-task-notes-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
 		opacity: 0.8;
 	}
 
-	.og-task-delete-btn {
+	.og-meta-icon {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.og-task-actions {
+		display: flex;
+		align-items: center;
+		gap: 2px;
 		opacity: 0;
-		padding: 2px 6px;
-		font-size: 12px;
+		transition: opacity 0.15s ease;
+	}
+
+	.og-task-item:hover .og-task-actions {
+		opacity: 1;
+	}
+
+	.og-task-action-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 3px 5px;
 		color: var(--text-muted);
 		cursor: pointer;
 		border-radius: 4px;
 	}
 
-	.og-task-item:hover .og-task-delete-btn {
-		opacity: 0.8;
+	.og-task-action-btn:hover {
+		color: var(--text-normal);
+		background-color: var(--background-modifier-border);
 	}
 
-	.og-task-delete-btn:hover {
-		opacity: 1 !important;
-		color: var(--text-error);
+	.og-task-action-btn.is-delete:hover {
+		color: var(--text-error, #f87171);
 	}
 
 	.og-task-empty {
@@ -346,10 +600,6 @@
 		color: var(--text-muted);
 		gap: 6px;
 		font-size: 13px;
-	}
-
-	.og-task-empty span {
-		font-size: 24px;
 	}
 
 	.og-task-loading,
