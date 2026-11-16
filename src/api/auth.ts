@@ -1,5 +1,4 @@
-import * as http from 'http';
-import { requestUrl } from 'obsidian';
+import { Platform, requestUrl } from 'obsidian';
 import type OgTaskPlugin from '../main';
 
 export interface GoogleTokenResponse {
@@ -50,7 +49,11 @@ export async function getValidToken(plugin: OgTaskPlugin): Promise<string> {
 	return settings.accessToken;
 }
 
-let activeServer: http.Server | null = null;
+interface ClosableServer {
+	close: () => void;
+}
+
+let activeServer: ClosableServer | null = null;
 
 export function stopAuthServer(): void {
 	if (activeServer) {
@@ -63,9 +66,20 @@ export function stopAuthServer(): void {
 	}
 }
 
-export function listenForAuthCode(port = 42813, timeoutMs = 120000): Promise<string> {
+export async function listenForAuthCode(port = 42813, timeoutMs = 120000): Promise<string> {
 	// If a previous server is still open, close it first
 	stopAuthServer();
+
+	if (!Platform.isDesktop) {
+		throw new Error('Local OAuth authentication server is only supported on desktop.');
+	}
+
+	let http: typeof import('http');
+	if (Platform.isDesktop) {
+		http = await import('http');
+	} else {
+		throw new Error('Desktop only');
+	}
 
 	return new Promise((resolve, reject) => {
 		const server = http.createServer((req, res) => {
