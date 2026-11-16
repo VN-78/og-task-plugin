@@ -270,7 +270,7 @@
 			<table class="og-table">
 				<thead>
 					<tr>
-						<th class="og-th-status">✅</th>
+						<th class="og-th-status">Status</th>
 						<th class="og-th-title">Task</th>
 						<th class="og-th-due">Due date</th>
 						<th class="og-th-actions">Actions</th>
@@ -562,14 +562,40 @@
 
 	.og-table {
 		width: 100%;
-		border-collapse: collapse;
+		border-collapse: separate;
+		border-spacing: 0;
 		font-size: 13px;
 		text-align: left;
+		margin: 0 !important;
+		border: none !important;
 	}
 
-	.og-table thead tr {
+	.og-table thead {
+		display: table;
+		width: 100%;
+		table-layout: fixed;
 		border-bottom: 1px solid var(--background-modifier-border);
 		background-color: var(--background-secondary-alt, var(--background-secondary));
+		scrollbar-gutter: stable;
+	}
+
+	.og-table tbody {
+		display: block;
+		max-height: 355px;
+		overflow-y: auto;
+		overflow-x: hidden;
+		scrollbar-gutter: stable;
+	}
+
+	.og-table tbody tr {
+		display: table;
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	.og-table th,
+	.og-table td {
+		border: none !important;
 	}
 
 	.og-table th {
@@ -582,22 +608,27 @@
 	}
 
 	.og-th-status {
-		width: 38px;
+		width: 65px;
 		text-align: center;
-		padding-right: 0;
+		vertical-align: middle;
+		padding: 8px 0;
 	}
 
 	.og-th-title {
+		width: auto;
 		min-width: 220px;
+		padding: 8px 12px;
 	}
 
 	.og-th-due {
 		width: 140px;
+		padding: 8px 12px;
 	}
 
 	.og-th-actions {
 		width: 80px;
 		text-align: right;
+		padding: 8px 12px;
 	}
 
 	.og-table-row {
@@ -614,18 +645,44 @@
 	}
 
 	.og-td-checkbox {
-		padding: 10px 0 10px 12px;
-		vertical-align: top;
+		width: 65px;
+		text-align: center;
+		vertical-align: middle;
+		padding: 10px 0;
 	}
 
 	.og-task-checkbox {
 		cursor: pointer;
-		margin-top: 2px;
+		width: 24px;
+		height: 24px;
+		min-width: 18px;
+		min-height: 18px;
+		margin: 0 auto;
+		display: inline-block;
+		vertical-align: middle;
+		accent-color: var(--interactive-accent);
 	}
 
 	.og-td-title {
+		width: auto;
+		min-width: 220px;
 		padding: 10px 12px;
 		vertical-align: top;
+	}
+
+	.og-td-due {
+		width: 140px;
+		padding: 10px 12px;
+		vertical-align: top;
+		white-space: nowrap;
+	}
+
+	.og-td-actions {
+		width: 80px;
+		padding: 10px 12px;
+		text-align: right;
+		vertical-align: top;
+		white-space: nowrap;
 	}
 
 	.og-task-title-group {
@@ -720,13 +777,6 @@
 		padding-left: 6px;
 	}
 
-	.og-td-actions {
-		padding: 10px 12px;
-		text-align: right;
-		vertical-align: top;
-		white-space: nowrap;
-	}
-
 	.og-row-btn {
 		display: inline-flex;
 		align-items: center;
@@ -747,6 +797,8 @@
 	}
 
 	.og-table-cell-empty {
+		grid-column: 1 / -1;
+		width: 100%;
 		padding: 30px;
 		text-align: center;
 		color: var(--text-muted);
