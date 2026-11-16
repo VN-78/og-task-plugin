@@ -24,6 +24,16 @@ export async function getTaskLists(client: GoogleTasksClient): Promise<GoogleTas
 	return res?.items ?? [];
 }
 
+export async function createTaskList(
+	client: GoogleTasksClient,
+	title: string
+): Promise<GoogleTaskList> {
+	return client.request<GoogleTaskList>('/users/@me/lists', {
+		method: 'POST',
+		body: JSON.stringify({ title }),
+	});
+}
+
 export async function getActiveTasks(
 	client: GoogleTasksClient,
 	listId: string
@@ -90,3 +100,30 @@ export async function deleteTask(
 		}
 	);
 }
+
+export async function patchTaskList(
+	client: GoogleTasksClient,
+	listId: string,
+	title: string
+): Promise<GoogleTaskList> {
+	return client.request<GoogleTaskList>(
+		`/users/@me/lists/${encodeURIComponent(listId)}`,
+		{
+			method: 'PATCH',
+			body: JSON.stringify({ title }),
+		}
+	);
+}
+
+export async function deleteTaskList(
+	client: GoogleTasksClient,
+	listId: string
+): Promise<void> {
+	await client.request<void>(
+		`/users/@me/lists/${encodeURIComponent(listId)}`,
+		{
+			method: 'DELETE',
+		}
+	);
+}
+
