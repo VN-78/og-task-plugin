@@ -270,7 +270,7 @@
 			<table class="og-table">
 				<thead>
 					<tr>
-						<th class="og-th-status">Status</th>
+						<th class="og-th-status"></th>
 						<th class="og-th-title">Task</th>
 						<th class="og-th-due">Due date</th>
 						<th class="og-th-actions">Actions</th>
@@ -581,7 +581,7 @@
 
 	.og-table tbody {
 		display: block;
-		max-height: 355px;
+		max-height: 321px;
 		overflow-y: auto;
 		overflow-x: hidden;
 		scrollbar-gutter: stable;
@@ -596,6 +596,13 @@
 	.og-table th,
 	.og-table td {
 		border: none !important;
+		border-right: 1px solid var(--background-modifier-border) !important;
+		box-sizing: border-box;
+	}
+
+	.og-th-actions,
+	.og-td-actions {
+		border-right: none !important;
 	}
 
 	.og-table th {
