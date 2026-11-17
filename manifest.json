@@ -1,11 +1,10 @@
 {
 	"id": "og-task",
-	"name": "og task plugin",
+	"name": "OG Tasks",
 	"version": "1.0.0",
 	"minAppVersion": "1.7.2",
-	"description": "clean google task plugin for connecting to the google task api.",
+	"description": "Sync and manage Google Tasks directly in your notes and sidebar.",
 	"author": "VN-78",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"authorUrl": "https://github.com/VN-78",
+	"isDesktopOnly": true
 }
