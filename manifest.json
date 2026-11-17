@@ -1,7 +1,7 @@
 {
 	"id": "og-task",
 	"name": "OG Tasks",
-	"version": "1.0.3",
+	"version": "1.0.1",
 	"minAppVersion": "1.7.2",
 	"description": "Sync and manage Google Tasks directly in your notes and sidebar.",
 	"author": "VN-78",
