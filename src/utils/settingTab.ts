@@ -105,7 +105,7 @@ export class SettingTab extends PluginSettingTab {
 						authUrl.searchParams.set('response_type', 'code');
 						authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/tasks');
 						authUrl.searchParams.set('access_type', 'offline');
-						authUrl.searchParams.set('prompt', 'consent');
+						authUrl.searchParams.set('prompt', 'select_account consent');
 
 						button.setDisabled(true);
 						button.setButtonText('Waiting for authorization...');
