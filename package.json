@@ -1,6 +1,6 @@
 {
 	"name": "og-task",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Sync and manage Google Tasks directly in your notes and sidebar.",
 	"main": "main.js",
 	"type": "module",
