@@ -1,5 +1,6 @@
 import { Platform, requestUrl } from 'obsidian';
 import type OgTaskPlugin from '../main';
+import type * as HttpType from 'http';
 
 export interface GoogleTokenResponse {
 	access_token: string;
@@ -71,16 +72,12 @@ export async function listenForAuthCode(port = 42813, timeoutMs = 120000): Promi
 	stopAuthServer();
 
 	if (!Platform.isDesktop) {
-		throw new Error('Local OAuth authentication server is only supported on desktop.');
-	}
-
-	let http: typeof import('http');
-	if (Platform.isDesktop) {
-		http = await import('http');
-	} else {
-		throw new Error('Desktop only');
-	}
-
+			return Promise.reject(new Error('Local OAuth server is only supported on desktop.'));
+		}
+	
+		const nodeRequire = (window as unknown as { require: (id: string) => unknown }).require;
+	const http = nodeRequire('http') as typeof HttpType;
+	
 	return new Promise((resolve, reject) => {
 		const server = http.createServer((req, res) => {
 			try {
